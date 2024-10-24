@@ -4,6 +4,20 @@ import random
 suits = ["\u2663", "\u2660", "\u2666", "\u2665"]
 values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
+# fuer die Statistik
+number_combinations = 0
+poker_hands = {
+    "highcard": 0,
+    "pair": 0,
+    "twoPair": 0,
+    "three": 0,
+    "straight": 0,
+    "flush": 0,
+    "fullHouse": 0,
+    "four": 0,
+    "straightFlush": 0,
+    "royaleFlush": 0
+}
 
 def show_cards(cards):
     picked = []
@@ -15,8 +29,10 @@ def show_cards(cards):
 
 
 def statistics(combination):
-    print(combination)
-
+    global number_combinations
+    global poker_hands
+    number_combinations += 1
+    poker_hands[combination] += 1
 
 def royalflush(cards):
     if straight_flush(cards):
@@ -101,23 +117,25 @@ def pair(cards):
 
 def check_combination(cards, number_cards):
     if royalflush(cards):
-        print("Royale Flush")
+        statistics("royaleFlush")
     elif straight_flush(cards):
-        print("Straight Flush")
+        statistics("straightFlush")
     elif four_pair(cards):
-        print("4 pair")
+        statistics("four")
     elif fullhouse(cards):
-        print("fullhouse")
+        statistics("fullHouse")
     elif flush(cards):
-        print("Flush")
+        statistics("flush")
     elif straight(cards):
-        print("Straight")
+        statistics("straight")
     elif three_pair(cards):
-        print("3 pair")
+        statistics("three")
     elif two_pair(cards):
-        print("2 pair")
+        statistics("twoPair")
     elif pair(cards):
-        print("pair")
+        statistics("pair")
+    else:
+        statistics("highcard")
 
 def pick_cards(number_cards):
     # list array 52 werte
@@ -129,16 +147,17 @@ def pick_cards(number_cards):
 
     check_combination(cards[-number_cards:], number_cards)
     #print(cards[-number_cards:])
-    show_cards(cards[-number_cards:])
+    #show_cards(cards[-number_cards:])
+
+
+def main():
+    for i in range(0, 1000000):
+        random_card = random.randint(0, 51)
+        pick_cards(5)
+    for key, values in poker_hands.items():
+        print(key)
+        print(values/number_combinations)
 
 
 if __name__ == "__main__":
-    for i in range(0, 100000):
-        random_card = random.randint(0, 51)
-        pick_cards(5)
-"""
- ran = random.randint(0, length-i-1)
-lotto[ran], lotto[-i] = lotto[-i], lotto[ran]
-"""
-
-# Kombinationen: Paar, zwei Paare, Drillinge, Strasse, Flush, Full House, Vierling, Straight Flush, Royale Flush
+    main()
