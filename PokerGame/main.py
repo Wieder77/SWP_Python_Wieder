@@ -1,8 +1,6 @@
 import random
 
-# cards = [i for i in range(0, 52)]
-suits = ["\u2663", "\u2660", "\u2666", "\u2665"]
-values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
 
 # fuer die Statistik
 number_combinations = 0
@@ -19,13 +17,20 @@ poker_hands = {
     "royaleFlush": 0
 }
 
+def get_cards_looks(cards):
+    suits = ["\u2663", "\u2660", "\u2666", "\u2665"]
+    values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    return suits, values
+
 def show_cards(cards):
     picked = []
+    suits, values = get_cards_looks(cards)
     for i in range(0, 5):
         card_suits = suits[cards[i] % 4]
         card_value = values[cards[i] % 13]
         picked.append(card_value + card_suits)
-    print(" ".join(picked))
+    print(f"Cards indices: {cards}")
+    print(f"Picked cards: {' '.join(picked)}")
 
 
 def statistics(combination):
@@ -49,31 +54,6 @@ def straight_flush(cards):
         return True
     else:
         return False
-def four_pair(cards):
-    cards_sorted = [x % 13 for x in cards]
-    cards_sorted.sort()
-    for i in range(len(cards_sorted) -3):
-        if cards_sorted[i + 1] == cards_sorted[i] and cards_sorted[i + 2] == cards_sorted[i] and cards_sorted[i + 3] == cards_sorted[i]:
-            return True
-    return False
-
-def fullhouse(cards):
-    cards_sorted = [x % 13 for x in cards]
-    cards_sorted.sort()
-    three_pair_location = 100
-    for i in range(len(cards_sorted) - 2):
-        if cards_sorted[i + 1] == cards_sorted[i] and cards_sorted[i + 2] == cards_sorted[i]:
-            three_pair_location = i
-            break
-    if three_pair_location == 0:
-        if cards_sorted[3] == cards_sorted[4]:
-            return True
-    elif three_pair_location == 2:
-        if cards_sorted[0] == cards_sorted[1]:
-            return True
-    else:
-        return False
-
 def flush(cards):
     compare = cards[0] % 4
     result = all(card % 4 == compare for card in cards)
@@ -90,73 +70,65 @@ def straight(cards):
             if cards_sorted[i + 1] != cards_sorted[i] + 1:
                 return False
         return True
-def three_pair(cards):
-    cards_sorted = [x % 13 for x in cards]
-    cards_sorted.sort()
-    for i in range(len(cards_sorted) -2):
-        if cards_sorted[i + 1] == cards_sorted[i] and cards_sorted[i + 2] == cards_sorted[i]:
-            return True
-    return False
 
-def two_pair(cards):
-    cards_sorted = [x % 13 for x in cards]
-    cards_sorted.sort()
-    pair_count = 0
-    for i in range(len(cards_sorted) -1):
-        if cards_sorted[i + 1] == cards_sorted[i]:
-            pair_count += 1
-    if pair_count == 2:
-        return True
-def pair(cards):
-    cards_sorted = [x % 13 for x in cards]
-    cards_sorted.sort()
-    for i in range(len(cards_sorted) -1):
-        if cards_sorted[i + 1] == cards_sorted[i]:
-            return True
-    return False
+def has_pair(cards):
+    card_values = [x % 13 for x in cards]
+    count = {}
+    for value in card_values:
+        count[value] = count.get(value, 0) + 1
+    values = list(count.values())
+    values.sort(reverse=True)
+    if 4 in values:
+        return "four"
+    elif 3 in values and 2 in values:
+        return "fullHouse"
+    elif 3 in values:
+        return "three"
+    elif values.count(2) == 2:
+        return "twoPair"
+    elif 2 in values:
+        return "pair"
 
 def check_combination(cards, number_cards):
     if royalflush(cards):
         statistics("royaleFlush")
     elif straight_flush(cards):
         statistics("straightFlush")
-    elif four_pair(cards):
+    elif has_pair(cards) == "four":
         statistics("four")
-    elif fullhouse(cards):
+    elif has_pair(cards) == "fullHouse":
         statistics("fullHouse")
     elif flush(cards):
         statistics("flush")
     elif straight(cards):
         statistics("straight")
-    elif three_pair(cards):
+    elif has_pair(cards) == "three":
         statistics("three")
-    elif two_pair(cards):
+    elif has_pair(cards) == "twoPair":
         statistics("twoPair")
-    elif pair(cards):
+    elif has_pair(cards) == "pair":
+        show_cards(cards)
         statistics("pair")
     else:
         statistics("highcard")
 
 def pick_cards(number_cards):
-    # list array 52 werte
-    cards = [i for i in range(52)]
-    # zieht karten
-    for i in range(number_cards + 1):
-        ran = random.randint(0, len(cards) - i - 1)
-        cards[ran], cards[-i] = cards[-i], cards[ran]
-
-    check_combination(cards[-number_cards:], number_cards)
-    #print(cards[-number_cards:])
-    #show_cards(cards[-number_cards:])
+    try:
+        cards = [i for i in range(52)]
+        for i in range(number_cards + 1):
+            ran = random.randint(0, len(cards) - i - 1)
+            cards[ran], cards[-i] = cards[-i], cards[ran]
+        check_combination(cards[-number_cards:], number_cards)
+    except IndexError as e:
+        print("Error picking cards: not enough cards left.")
+        raise e
 
 
 def main():
     for i in range(0, 1000000):
-        random_card = random.randint(0, 51)
         pick_cards(5)
     for key, values in poker_hands.items():
-        print(key)
-        print(values/number_combinations)
+        print(f"{key} :  {(values/number_combinations) * 100}%")
 
 
 if __name__ == "__main__":
